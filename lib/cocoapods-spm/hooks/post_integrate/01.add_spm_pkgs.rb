@@ -12,11 +12,10 @@ module Pod
             spm_pkg_refs = {}
             project.targets.each do |target|
               @spm_resolver.result.spm_dependencies_for(target).each do |dep|
-                pkg_ref = dep.pkg.create_pkg_ref(project)
+                pkg_ref = spm_pkg_refs[dep.pkg.name] ||= dep.pkg.create_pkg_ref(project)
                 target_dep_ref = pkg_ref.create_target_dependency_ref(dep.product)
                 target.dependencies << target_dep_ref
                 target.package_product_dependencies << target_dep_ref.product_ref if dep.pkg.use_default_xcode_linking?
-                spm_pkg_refs.store(dep.pkg.name, pkg_ref)
               end
             end
             spm_pkg_refs.each_value do |pkg_ref|

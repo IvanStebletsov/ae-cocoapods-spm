@@ -36,10 +36,15 @@ module Pod
         end
 
         def public_headers_path_expr
-          @public_headers_path_expr ||= public_headers_path.to_s.sub(
-            root.checkouts_dir.to_s,
-            "${SOURCE_PACKAGES_CHECKOUTS_DIR}"
-          )
+          @public_headers_path_expr ||= begin
+            path = public_headers_path.to_s
+            installation_root = Pod::Config.instance.installation_root.to_s
+            if path.start_with?(installation_root)
+              path.sub(installation_root, "${PODS_ROOT}/..")
+            else
+              path.sub(root.checkouts_dir.to_s, "${SOURCE_PACKAGES_CHECKOUTS_DIR}")
+            end
+          end
         end
 
         def header_search_path_arg

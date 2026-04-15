@@ -24,7 +24,9 @@ module Pod
             # Update input/output files
             user_build_configurations.each_key do |config|
               append_contents = lambda do |method_name, contents|
-                target.send(method_name, config).open("r+") do |f|
+                path = target.send(method_name, config)
+                next unless path.exist?
+                path.open("r+") do |f|
                   existing = f.readlines(chomp: true)
                   contents.each { |p| f << "\n" << p unless existing.include?(p) }
                 end
@@ -38,6 +40,7 @@ module Pod
         private
 
         def update_script_content(options = {})
+          return unless options[:path].exist?
           match_content = options[:before]
           insert_content = <<~SH
             # --------------------------------------------------------
