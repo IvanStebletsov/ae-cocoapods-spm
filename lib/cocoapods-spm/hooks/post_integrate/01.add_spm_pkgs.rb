@@ -10,9 +10,13 @@ module Pod
 
           projects_to_integrate.compact.each do |project|
             spm_pkg_refs = {}
+            @spm_resolver.result.spm_pkgs.each do |pkg|
+              spm_pkg_refs[pkg.name] ||= pkg.create_pkg_ref(project)
+            end
+
             project.targets.each do |target|
               @spm_resolver.result.spm_dependencies_for(target).each do |dep|
-                pkg_ref = spm_pkg_refs[dep.pkg.name] ||= dep.pkg.create_pkg_ref(project)
+                pkg_ref = spm_pkg_refs[dep.pkg.name]
                 target_dep_ref = pkg_ref.create_target_dependency_ref(dep.product)
                 target.dependencies << target_dep_ref
                 target.package_product_dependencies << target_dep_ref.product_ref if dep.pkg.use_default_xcode_linking?
@@ -21,6 +25,7 @@ module Pod
             spm_pkg_refs.each_value do |pkg_ref|
               project.root_object.package_references << pkg_ref
             end
+            Xcodeproj::Project.predictabilize_uuids([project])
             project.save
           end
         end

@@ -80,7 +80,7 @@ module Pod
           ref.relative_path = relative_path
         else
           ref.repositoryURL = url
-          ref.requirement = requirement
+          ref.requirement = requirement.transform_keys(&:to_s)
         end
         ref
       end
