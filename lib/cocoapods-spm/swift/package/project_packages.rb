@@ -15,18 +15,21 @@ module Pod
       def resolve_recursive_targets_of(pkg_name, product_name, platform: nil)
         @recursive_targets_cache ||= {}
         @recursive_targets_cache[platform] ||= {}
-        return @recursive_targets_cache[platform][product_name] if @recursive_targets_cache[platform].key(product_name)
+        cache_key = "#{pkg_name}/#{product_name}"
+        return @recursive_targets_cache[platform][cache_key] if @recursive_targets_cache[platform].key?(cache_key)
 
         res = []
+        visited = Set.new
         to_visit = pkg_desc_of(pkg_name).targets_of_product(product_name)
         until to_visit.empty?
           target = to_visit.pop
+          next unless visited.add?(target.name)
           res << target
           # Exclude macros as they wont be linked to the project's binary
           # https://github.com/trinhngocthuyen/cocoapods-spm/issues/107
           to_visit += target.resolve_dependencies(@pkg_desc_cache, platform: platform).reject(&:macro?)
         end
-        @recursive_targets_cache[platform][product_name] = res.uniq(&:name)
+        @recursive_targets_cache[platform][cache_key] = res
       end
 
       def pkg_desc_of(name)

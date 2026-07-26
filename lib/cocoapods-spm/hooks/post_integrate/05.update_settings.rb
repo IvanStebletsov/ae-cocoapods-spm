@@ -42,6 +42,16 @@ module Pod
           )
         end
 
+        def settings_for(target)
+          @settings_cache ||= {}
+          @settings_cache[[target.name, target.platform.name]] ||= {
+            "OTHER_SWIFT_FLAGS" => modulemap_args_for_target(target, prefix: "-Xcc"),
+            "OTHER_CFLAGS" => modulemap_args_for_target(target),
+            "HEADER_SEARCH_PATHS" => header_search_paths_for(target),
+            "OTHER_LDFLAGS" => linker_flags_for(target),
+          }
+        end
+
         def update_packages_flags
           return if @spm_resolver.result.spm_pkgs.empty?
 
@@ -53,10 +63,7 @@ module Pod
                 "FRAMEWORK_SEARCH_PATHS" => "\"${PODS_CONFIGURATION_BUILD_DIR}/PackageFrameworks\"",
                 "LIBRARY_SEARCH_PATHS" => "\"${PODS_CONFIGURATION_BUILD_DIR}\"",
                 "SWIFT_INCLUDE_PATHS" => "${PODS_CONFIGURATION_BUILD_DIR}",
-                "OTHER_SWIFT_FLAGS" => modulemap_args_for_target(target, prefix: "-Xcc"),
-                "OTHER_CFLAGS" => modulemap_args_for_target(target),
-                "HEADER_SEARCH_PATHS" => header_search_paths_for(target),
-                "OTHER_LDFLAGS" => linker_flags_for(target),
+                **settings_for(target),
               }
             end
           )

@@ -52,9 +52,14 @@ module Pod
         end
 
         def public_headers_path
-          res = sources_path / raw["publicHeadersPath"] if raw.key?("publicHeadersPath")
-          res = implicit_public_headers if res.nil?
-          res
+          return @public_headers_path if defined?(@public_headers_path)
+
+          @public_headers_path =
+            if raw.key?("publicHeadersPath")
+              sources_path / raw["publicHeadersPath"]
+            else
+              implicit_public_headers
+            end
         end
 
         def implicit_public_headers
